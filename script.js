@@ -75,11 +75,11 @@ let quillFragen, quillReflexion;
 if (document.getElementById('fragenBox')) {
     quillFragen = new Quill('#fragenBox', {
         theme: 'snow',
-        placeholder: 'Gib hier deine Fragen ein...',
+        placeholder: 'Gib hier deine Antwort ein...',
         modules: {
             toolbar: [
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 ['clean']
             ]
         }
@@ -98,7 +98,7 @@ if (document.getElementById('fragenBox')) {
 if (document.getElementById('reflexionsfrageBox')) {
     quillReflexion = new Quill('#reflexionsfrageBox', {
         theme: 'snow',
-        placeholder: 'Gib hier deine Reflexionsfrage ein...',
+        placeholder: 'Gib hier deine Antwort ein...',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
@@ -226,7 +226,7 @@ function clearLocalStorage() {
     loadAllAnswers(); // Aktualisiere die Liste aller gespeicherten Antworten
 }
 
-// Funktion zum Löschen aller Antworten (Bulk)
+// Funktion zum Löschen ausgewählter Antworten (Bulk)
 function bulkDeleteAnswers() {
     const selectedCheckboxes = document.querySelectorAll(".select-answer:checked");
     if(selectedCheckboxes.length === 0) {
@@ -296,50 +296,26 @@ function printSingleAnswer(title, content) {
     window.print();
 }
 
-// Funktion zum Drucken aller Antworten
-function printAllAnswers(allContent) {
-    // Erstelle ein temporäres Div
-    const printDiv = document.createElement('div');
-    printDiv.id = 'printAllContent';
+// Funktion zur Anzeige des gespeicherten Textes
+function displaySavedAnswer(content) {
+    if (!savedFragenTitle || !savedFragenAnswer || !savedReflexionsfrageTitle || !savedReflexionsfrageAnswer || !savedAnswerContainer) return;
+    // Kombiniere parentTitle und assignmentSuffix, falls verfügbar
+    const titleText = parentTitle
+        ? `${parentTitle}\nFragen: ${assignmentSuffix}`
+        : `Fragen: ${assignmentSuffix}`;
+    
+    // Anzeige der Fragen
+    savedFragenTitle.textContent = `Fragen: ${assignmentSuffix}`;
+    savedFragenAnswer.innerHTML = content.fragen;
 
-    // Füge den kombinierten Inhalt hinzu
-    printDiv.innerHTML = allContent;
+    // Anzeige der Reflexionsfrage
+    savedReflexionsfrageTitle.textContent = `Reflexionsfrage: ${assignmentSuffix}`;
+    savedReflexionsfrageAnswer.innerHTML = content.reflexionsfrage;
 
-    // Füge das Div zum Body hinzu
-    document.body.appendChild(printDiv);
-
-    // Füge die Klasse 'print-all' zum Body hinzu
-    document.body.classList.add('print-all');
-
-    // Definiere die Handler-Funktion
-    function handleAfterPrint() {
-        document.body.classList.remove('print-all');
-        const printDivAfter = document.getElementById('printAllContent');
-        if (printDivAfter) {
-            document.body.removeChild(printDivAfter);
-        }
-        // Entferne den Event Listener
-        window.removeEventListener('afterprint', handleAfterPrint);
-    }
-
-    // Füge den Event Listener hinzu
-    window.addEventListener('afterprint', handleAfterPrint);
-
-    // Trigger den Druck
-    window.print();
+    savedAnswerContainer.style.display = 'block';
 }
 
-// Funktion zum Anzeigen des "Gespeichert"-Hinweises
-function showSaveIndicator() {
-    if (!saveIndicator) return;
-    // Temporäre Änderung der Hintergrundfarbe für 2 Sekunden
-    saveIndicator.style.backgroundColor = 'green'; // Grün anzeigen
-    setTimeout(() => {
-        saveIndicator.style.backgroundColor = ''; // Zurück zur Standardfarbe
-    }, 2000); // Nach 2 Sekunden zurücksetzen
-}
-
-// Debounce-Funktion zur Begrenzung der Ausführungsrate
+// Funktion zum Speichern des Textes in localStorage (Debounced)
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -520,118 +496,235 @@ if (document.getElementById("downloadAllBtn")) {
     });
 }
 
-// Event Listener für die "Alle Antworten drucken / Als PDF speichern" Schaltfläche
-if (document.getElementById("printAllBtn")) {
-    document.getElementById("printAllBtn").addEventListener('click', function() {
-        const storageKeys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX));
+// Funktion zum Generieren und Exportieren einer einzelnen Antwort als HTML
+function exportAnswerAsHtml(content, assignmentId) {
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <title>Antwort - Aufgabe ${assignmentId}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { color: #003f5c; }
+                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                div { margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            <h2>Aufgabe ${assignmentId}</h2>
+            <div><strong>Fragen:</strong> ${content.fragen}</div>
+            <div><strong>Reflexionsfrage:</strong> ${content.reflexionsfrage}</div>
+        </body>
+        </html>
+    `;
 
-        if(storageKeys.length === 0) {
-            alert("Keine gespeicherten Antworten zum Drucken oder Speichern als PDF vorhanden.");
-            console.log("Versuch, alle Antworten zu drucken, aber keine sind gespeichert");
-            return;
-        }
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
 
-        console.log("Drucken aller gespeicherten Antworten wird initiiert");
-
-        // Kombiniere alle gespeicherten Antworten
-        let allContent = '';
-        storageKeys.sort((a, b) => {
-            const suffixA = a.replace(STORAGE_PREFIX, '');
-            const suffixB = b.replace(STORAGE_PREFIX, '');
-            return suffixB.localeCompare(suffixA, undefined, {numeric: true, sensitivity: 'base'});
-        });
-
-        storageKeys.forEach(assignmentIdKey => {
-            const text = localStorage.getItem(assignmentIdKey);
-            if(text) {
-                const parsedContent = JSON.parse(text);
-                const assignmentIdMatch = assignmentIdKey.match(/^boxsuk-assignment[_-]?(.+)$/);
-                const assignmentIdClean = assignmentIdMatch ? assignmentIdMatch[1] : assignmentIdKey;
-                const title = `Aufgabe ${assignmentIdClean}`;
-                allContent += `<h3>${title}</h3>`;
-                allContent += `<div><strong>Fragen:</strong> ${parsedContent.fragen}</div>`;
-                allContent += `<div><strong>Reflexionsfrage:</strong> ${parsedContent.reflexionsfrage}</div>`;
-                allContent += `<hr>`;
-            }
-        });
-
-        // Drucken aller Antworten
-        printAllAnswers(allContent);
-    });
-}
-
-// Event Listener für die "Alle auswählen" Checkbox
-const selectAllCheckbox = document.getElementById("selectAll");
-if (selectAllCheckbox) {
-    selectAllCheckbox.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll(".select-answer");
-        checkboxes.forEach(cb => cb.checked = this.checked);
-        toggleBulkDeleteButton();
-    });
-}
-
-// Event Listener für die "Ausgewählte löschen" Schaltfläche
-if (document.getElementById("bulkDeleteBtn")) {
-    document.getElementById("bulkDeleteBtn").addEventListener('click', bulkDeleteAnswers);
-}
-
-// Funktion zum Kopieren als Fallback
-function fallbackCopyTextToClipboard(text) {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    // Verstecke das textarea Element
-    textarea.style.position = "fixed";
-    textarea.style.top = "-9999px";
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-
-    try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            console.log("Text erfolgreich kopiert (Fallback)");
-        } else {
-            throw new Error("Fallback copy unsuccessful");
-        }
-    } catch (err) {
-        console.error('Fehler beim Kopieren der Antwort (Fallback): ', err);
-    }
-
-    document.body.removeChild(textarea);
-}
-
-// Funktion zum Kopieren einer einzelnen Antwort (falls benötigt in anderen Seiten)
-function copyAnswer(assignmentId) {
-    const content = localStorage.getItem(assignmentId);
-    if (content) {
-        const parsedContent = JSON.parse(content);
-        const combinedText = `Fragen: ${stripHtml(parsedContent.fragen)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
-        copyTextToClipboard(combinedText);
+    // Feature detection for download attribute
+    if (typeof link.download !== 'undefined') {
+        link.download = `antwort_${assignmentId}.html`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    } else {
+        // Fallback for browsers without download support
+        window.open(url);
     }
 }
 
-// Utility function to strip HTML tags
-function stripHtml(html) {
-    let tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    return tempDiv.textContent || tempDiv.innerText || "";
-}
-
-// Funktion zum Kopieren des Textes aus beiden Quill-Editoren
-function copyBothAnswers() {
-    const currentStorageKey = STORAGE_PREFIX + assignmentId;
-    const savedText = localStorage.getItem(currentStorageKey);
+// Funktion zum Exportieren der aktuellen Antwort als HTML
+function exportAnswerAsHtmlHandler() {
+    const savedText = localStorage.getItem(STORAGE_PREFIX + assignmentId);
 
     if (!savedText) {
-        alert("Keine gespeicherten Antworten zum Kopieren vorhanden.");
-        console.log("Versuch, Antworten zu kopieren, aber keine sind gespeichert");
+        alert("Keine gespeicherte Antwort zum Exportieren vorhanden.");
+        console.log("Versuch, die Antwort zu exportieren, aber keine ist gespeichert");
         return;
     }
 
     const parsedContent = JSON.parse(savedText);
-    const combinedText = `Fragen: ${stripHtml(parsedContent.fragen)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
+    exportAnswerAsHtml(parsedContent, assignmentSuffix || 'defaultAssignment');
+}
 
-    copyTextToClipboard(combinedText);
+// Funktion zum Generieren und Exportieren aller Antworten als HTML
+function downloadAllAnswersAsHtml() {
+    const answers = getAllSavedAnswers();
+    const messageEl = document.getElementById('message');
+
+    if (answers.length === 0) {
+        messageEl.textContent = "Keine gespeicherten Antworten gefunden.";
+        return;
+    }
+
+    let allContent = '';
+    answers.forEach(answer => {
+        allContent += `<h2>Aufgabe ${answer.id}</h2>`;
+        allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
+        allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
+        allContent += `<hr>`;
+    });
+
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <title>Alle Antworten</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { color: #003f5c; }
+                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                div { margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            ${allContent}
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    // Feature detection for download attribute
+    if (typeof link.download !== 'undefined') {
+        link.download = 'alle_antworten.html';
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        messageEl.textContent = "Alle Antworten wurden als HTML exportiert.";
+    } else {
+        // Fallback for browsers without download support
+        window.open(url);
+        messageEl.textContent = "Browser unterstützt den Download nicht. Datei wurde in einem neuen Tab geöffnet.";
+    }
+}
+
+// Event Listener für den "Alle auswählen" Checkbox
+function toggleBulkDeleteButton() {
+    const selected = document.querySelectorAll(".select-answer:checked").length;
+    const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+    bulkDeleteBtn.disabled = selected === 0;
+}
+
+// Event Listener für die "Alle auswählen" Checkbox
+document.getElementById("selectAll").addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll(".select-answer");
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    toggleBulkDeleteButton();
+});
+
+// Event Listener für den Bulk Delete Button
+document.getElementById("bulkDeleteBtn").addEventListener('click', bulkDeleteAnswers);
+
+// Event Listener für den Export als HTML Button (in answers.html)
+const exportHtmlBtn = document.getElementById("exportHtmlBtn");
+if (exportHtmlBtn) {
+    exportHtmlBtn.addEventListener('click', exportAnswerAsHtmlHandler);
+}
+
+// Funktion zum Drucken aller Antworten
+function printAllAnswers(allContent) {
+    // Erstelle ein temporäres Div
+    const printDiv = document.createElement('div');
+    printDiv.id = 'printAllContent';
+
+    // Füge den kombinierten Inhalt hinzu
+    printDiv.innerHTML = allContent;
+
+    // Füge das Div zum Body hinzu
+    document.body.appendChild(printDiv);
+
+    // Füge die Klasse 'print-all' zum Body hinzu
+    document.body.classList.add('print-all');
+
+    // Definiere die Handler-Funktion
+    function handleAfterPrint() {
+        document.body.classList.remove('print-all');
+        const printDivAfter = document.getElementById('printAllContent');
+        if (printDivAfter) {
+            document.body.removeChild(printDivAfter);
+        }
+        // Entferne den Event Listener
+        window.removeEventListener('afterprint', handleAfterPrint);
+    }
+
+    // Füge den Event Listener hinzu
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    // Trigger den Druck
+    window.print();
+}
+
+// Funktion zum Generieren und Exportieren aller Antworten als HTML (für print_page.html)
+function downloadAllAnswersAsHtmlFromPrintPage() {
+    const answers = getAllSavedAnswers();
+    const messageEl = document.getElementById('message');
+
+    if (answers.length === 0) {
+        messageEl.textContent = "Keine gespeicherten Antworten gefunden.";
+        return;
+    }
+
+    let allContent = '';
+    answers.forEach(answer => {
+        allContent += `<h2>Aufgabe ${answer.id}</h2>`;
+        allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
+        allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
+        allContent += `<hr>`;
+    });
+
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <title>Alle Antworten</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { color: #003f5c; }
+                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                div { margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            ${allContent}
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    // Feature detection for download attribute
+    if (typeof link.download !== 'undefined') {
+        link.download = 'alle_antworten.html';
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        messageEl.textContent = "Alle Antworten wurden als HTML exportiert.";
+    } else {
+        // Fallback for browsers without download support
+        window.open(url);
+        messageEl.textContent = "Browser unterstützt den Download nicht. Datei wurde in einem neuen Tab geöffnet.";
+    }
+}
+
+// Event Listener für den "Alle Antworten als HTML exportieren" Button (in print_page.html)
+const downloadAllHtmlBtn = document.getElementById("downloadAllHtmlBtn");
+if (downloadAllHtmlBtn) {
+    downloadAllHtmlBtn.addEventListener('click', downloadAllAnswersAsHtml);
 }
 
 // Optional: Log the initial state of localStorage for debugging
@@ -639,48 +732,4 @@ console.log("Initialer Zustand von localStorage:");
 for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     console.log(`${key}: ${localStorage.getItem(key)}`);
-}
-
-// Event Listener für den neuen "Export als TXT" Button
-const exportTxtBtn = document.getElementById("exportTxtBtn");
-if (exportTxtBtn) {
-    exportTxtBtn.addEventListener('click', function() {
-        const currentStorageKey = STORAGE_PREFIX + assignmentId;
-        const savedHtml = localStorage.getItem(currentStorageKey);
-
-        if (!savedHtml) {
-            alert("Keine gespeicherte Antwort zum Exportieren vorhanden.");
-            console.log("Versuch, die Antwort zu exportieren, aber keine ist gespeichert");
-            return;
-        }
-
-        // Parse the saved JSON content
-        const parsedContent = JSON.parse(savedHtml);
-
-        // HTML zu Text mit korrekten Zeilenumbrüchen konvertieren
-        const fragenText = stripHtml(parsedContent.fragen);
-        const reflexionText = stripHtml(parsedContent.reflexionsfrage);
-
-        // Füge URL und AssignmentId hinzu
-        let plainText = `Fragen:\n${fragenText}\n\nReflexionsfrage:\n${reflexionText}\n\nURL: ${window.location.href}\nAssignment ID: ${assignmentId}`;
-
-        // Blob und Download
-        const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-    
-        if ('download' in link) {
-            link.download = `${assignmentSuffix || 'antwort'}.txt`;
-            link.href = url;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 100); // Clean up
-        } else {
-            window.open(url); // Fallback for unsupported browsers
-        }
-
-        // Update "Gespeichert" Indicator
-        showSaveIndicator();
-    });
 }

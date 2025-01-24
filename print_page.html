@@ -1,3 +1,4 @@
+<!-- File: allgemeinbildung-textbox/print_page.html -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -47,7 +48,7 @@
     <div class="container">
         <h3>Alle gespeicherten Antworten Drucken</h3>
         <button id="printAllBtn">Alle Antworten drucken / Als PDF speichern</button>
-        <button id="downloadAllTxtBtn">Alle Antworten als TXT exportieren</button>
+        <button id="downloadAllHtmlBtn">Alle Antworten als HTML exportieren</button>
         <div class="message" id="message"></div>
     </div>
 
@@ -114,7 +115,7 @@
             };
         }
 
-        function downloadAllAnswersAsTxt() {
+        function downloadAllAnswersAsHtml() {
             const answers = getAllSavedAnswers();
             const messageEl = document.getElementById('message');
 
@@ -123,44 +124,56 @@
                 return;
             }
 
-            let txtContent = '';
+            let allContent = '';
             answers.forEach(answer => {
-                txtContent += `Aufgabe ${answer.id}\n`;
-                txtContent += `Fragen:\n${stripHtml(answer.fragen)}\n\n`;
-                txtContent += `Reflexionsfrage:\n${stripHtml(answer.reflexionsfrage)}\n`;
-                txtContent += `URL: ${window.location.href}\nAssignment ID: ${answer.id}\n\n`;
+                allContent += `<h2>Aufgabe ${answer.id}</h2>`;
+                allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
+                allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
+                allContent += `<hr>`;
             });
 
-            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="de">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Alle Antworten</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h2 { color: #003f5c; }
+                        hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                        div { margin-bottom: 10px; }
+                    </style>
+                </head>
+                <body>
+                    ${allContent}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const link = document.createElement('a');
 
             // Feature detection for download attribute
-            if (typeof a.download !== 'undefined') {
-                a.download = 'alle_antworten.txt';
-                a.href = url;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            if (typeof link.download !== 'undefined') {
+                link.download = 'alle_antworten.html';
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
                 setTimeout(() => URL.revokeObjectURL(url), 100);
+                messageEl.textContent = "Alle Antworten wurden als HTML exportiert.";
             } else {
                 // Fallback for browsers without download support
                 window.open(url);
+                messageEl.textContent = "Browser unterstützt den Download nicht. Datei wurde in einem neuen Tab geöffnet.";
             }
-
-            messageEl.textContent = "Alle Antworten wurden als TXT exportiert.";
-        }
-
-        // Utility function to strip HTML tags
-        function stripHtml(html) {
-            let tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            return tempDiv.textContent || tempDiv.innerText || "";
         }
 
         // Event Listeners
         document.getElementById('printAllBtn').addEventListener('click', printAllAnswers);
-        document.getElementById('downloadAllTxtBtn').addEventListener('click', downloadAllAnswersAsTxt);
+        document.getElementById('downloadAllHtmlBtn').addEventListener('click', downloadAllAnswersAsHtml);
     </script>
 </body>
 </html>

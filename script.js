@@ -707,7 +707,7 @@ function downloadAllAnswersAsHtmlFromPrintPage() {
 
     // Feature detection for download attribute
     if (typeof link.download !== 'undefined') {
-        link.download = 'alle_antworten.html';
+        link.download = 'alle_antworten_.html';
         link.href = url;
         document.body.appendChild(link);
         link.click();

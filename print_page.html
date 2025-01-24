@@ -11,7 +11,7 @@
             color: #333;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             text-align: center;
         }
@@ -60,10 +60,12 @@
             storageKeys.forEach(key => {
                 const htmlContent = localStorage.getItem(key);
                 if (htmlContent) {
+                    const parsedContent = JSON.parse(htmlContent);
                     const assignmentId = key.replace(STORAGE_PREFIX, '');
                     answers.push({
                         id: assignmentId,
-                        content: htmlContent
+                        auftrag: parsedContent.auftrag,
+                        reflexionsfrage: parsedContent.reflexionsfrage
                     });
                 }
             });
@@ -83,7 +85,8 @@
             let allContent = '';
             answers.forEach(answer => {
                 allContent += `<h2>Aufgabe ${answer.id}</h2>`;
-                allContent += `<div>${answer.content}</div>`;
+                allContent += `<div><strong>Auftrag:</strong> ${answer.auftrag}</div>`;
+                allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
                 allContent += `<hr>`;
             });
 
@@ -96,6 +99,7 @@
                         body { font-family: Arial, sans-serif; padding: 20px; }
                         h2 { color: #003f5c; }
                         hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+                        div { margin-bottom: 10px; }
                     </style>
                 </head>
                 <body>${allContent}</body>
@@ -121,17 +125,10 @@
 
             let txtContent = '';
             answers.forEach(answer => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = answer.content;
-                
-                let plainText = tempDiv.innerHTML
-                    .replace(/<\/div>/gi, "\n")
-                    .replace(/<br>/gi, "\n")
-                    .replace(/<\/p>/gi, "\n\n")
-                    .replace(/<[^>]+>/g, "");
-                    
-                plainText = plainText.replace(/\n\s*\n/g, '\n\n').trim();
-                txtContent += `Aufgabe ${answer.id}\n${plainText}\nURL: ${window.location.href}\nAssignment ID: ${answer.id}\n\n`;
+                txtContent += `Aufgabe ${answer.id}\n`;
+                txtContent += `Auftrag:\n${stripHtml(answer.auftrag)}\n\n`;
+                txtContent += `Reflexionsfrage:\n${stripHtml(answer.reflexionsfrage)}\n`;
+                txtContent += `URL: ${window.location.href}\nAssignment ID: ${answer.id}\n\n`;
             });
 
             const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
@@ -152,6 +149,13 @@
             }
 
             messageEl.textContent = "Alle Antworten wurden als TXT exportiert.";
+        }
+
+        // Utility function to strip HTML tags
+        function stripHtml(html) {
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            return tempDiv.textContent || tempDiv.innerText || "";
         }
 
         // Event Listeners

@@ -50,6 +50,7 @@
             storageKeys.forEach(key => {
                 const content = localStorage.getItem(key);
                 if(content) {
+                    const parsedContent = JSON.parse(content);
                     const assignmentIdMatch = key.match(/^boxsuk-assignment[_-]?(.+)$/);
                     const assignmentId = assignmentIdMatch ? assignmentIdMatch[1] : key;
 
@@ -78,11 +79,17 @@
                     title.textContent = `Aufgabe ${assignmentId}`;
                     answerDiv.appendChild(title);
 
-                    // Inhalt der Antwort
-                    const contentDiv = document.createElement("div");
-                    contentDiv.className = "answerText";
-                    contentDiv.innerHTML = content;
-                    answerDiv.appendChild(contentDiv);
+                    // Auftrag Inhalt
+                    const auftragDiv = document.createElement("div");
+                    auftragDiv.className = "answerText";
+                    auftragDiv.innerHTML = `<strong>Auftrag:</strong> ${parsedContent.auftrag}`;
+                    answerDiv.appendChild(auftragDiv);
+
+                    // Reflexionsfrage Inhalt
+                    const reflexionsfrageDiv = document.createElement("div");
+                    reflexionsfrageDiv.className = "answerText";
+                    reflexionsfrageDiv.innerHTML = `<strong>Reflexionsfrage:</strong> ${parsedContent.reflexionsfrage}`;
+                    answerDiv.appendChild(reflexionsfrageDiv);
 
                     // Button-Gruppe
                     const buttonGroup = document.createElement("div");
@@ -102,7 +109,7 @@
                     printBtn.textContent = "Diese Antwort drucken / Als PDF speichern";
                     printBtn.className = "printAnswerBtn";
                     printBtn.addEventListener('click', function() {
-                        printSingleAnswer(`Aufgabe ${assignmentId}`, content);
+                        printSingleAnswer(`Aufgabe ${assignmentId}`, parsedContent);
                     });
                     buttonGroup.appendChild(printBtn);
 
@@ -163,10 +170,18 @@
             titleElement.textContent = title;
             printDiv.appendChild(titleElement);
 
-            // Füge den Inhalt hinzu
-            const contentElement = document.createElement('div');
-            contentElement.innerHTML = content; // Verwenden Sie innerHTML für formatierte Inhalte
-            printDiv.appendChild(contentElement);
+            // Füge den Auftrag Inhalt hinzu
+            const auftragElement = document.createElement('div');
+            auftragElement.innerHTML = `<strong>Auftrag:</strong> ${content.auftrag}`;
+            printDiv.appendChild(auftragElement);
+
+            // Füge den Reflexionsfrage Inhalt hinzu
+            const reflexionsfrageElement = document.createElement('div');
+            reflexionsfrageElement.innerHTML = `<strong>Reflexionsfrage:</strong> ${content.reflexionsfrage}`;
+            printDiv.appendChild(reflexionsfrageElement);
+
+            // Füge einen Trenner hinzu
+            printDiv.appendChild(document.createElement('hr'));
 
             // Füge das Div zum Body hinzu
             document.body.appendChild(printDiv);

@@ -26,11 +26,19 @@ body {
 }
 
 .quill-editor {
-    height: 250px; /* Angepasst für ca. 20 Zeilen */
-    margin-bottom: 20px; /* Mehr Abstand zwischen den Editoren */
     background-color: var(--editor-background);
     border: 1px solid var(--border-color);
     border-radius: 4px;
+    margin-bottom: 20px; /* Mehr Abstand zwischen den Editoren */
+}
+
+/* Specific heights for each Quill editor */
+#fragenBox {
+    height: 200px; /* Approximately 8 lines */
+}
+
+#reflexionsfrageBox {
+    height: 100px; /* Approximately 4 lines */
 }
 
 .button-container, .button-container-main {
@@ -167,7 +175,7 @@ button:hover {
     margin-bottom: 10px;
 }
 
-#savedAuftragAnswer, #savedReflexionsfrageAnswer {
+#savedFragenAnswer, #savedReflexionsfrageAnswer {
     white-space: pre-wrap;
     font-size: 14px;
     padding: 10px;
@@ -179,8 +187,21 @@ button:hover {
     border: none;
 }
 
-#savedAnswerContainer, .draft .answerText {
-    white-space: pre-wrap; /* Beibehaltung von Zeilenumbrüchen */
+#saveIndicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px 16px;
+    background-color: #555555; /* Standardfarbe */
+    color: #ffffff;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    z-index: 1000;
+}
+
+/* Anpassung des "Gespeichert" Indicators */
+#saveIndicator.green {
+    background-color: green;
 }
 
 /* Weitere Komponenten */

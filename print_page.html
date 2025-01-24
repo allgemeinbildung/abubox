@@ -64,7 +64,7 @@
                     const assignmentId = key.replace(STORAGE_PREFIX, '');
                     answers.push({
                         id: assignmentId,
-                        auftrag: parsedContent.auftrag,
+                        fragen: parsedContent.fragen,
                         reflexionsfrage: parsedContent.reflexionsfrage
                     });
                 }
@@ -85,7 +85,7 @@
             let allContent = '';
             answers.forEach(answer => {
                 allContent += `<h2>Aufgabe ${answer.id}</h2>`;
-                allContent += `<div><strong>Auftrag:</strong> ${answer.auftrag}</div>`;
+                allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
                 allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
                 allContent += `<hr>`;
             });
@@ -126,7 +126,7 @@
             let txtContent = '';
             answers.forEach(answer => {
                 txtContent += `Aufgabe ${answer.id}\n`;
-                txtContent += `Auftrag:\n${stripHtml(answer.auftrag)}\n\n`;
+                txtContent += `Fragen:\n${stripHtml(answer.fragen)}\n\n`;
                 txtContent += `Reflexionsfrage:\n${stripHtml(answer.reflexionsfrage)}\n`;
                 txtContent += `URL: ${window.location.href}\nAssignment ID: ${answer.id}\n\n`;
             });

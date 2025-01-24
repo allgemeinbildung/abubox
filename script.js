@@ -59,34 +59,37 @@ const parentTitle = getParentPageTitle();
 const assignmentSuffix = assignmentId.replace(/^assignment[_-]?/i, '');
 
 // Anzeigeelemente
-const assignmentInfoAuftrag = document.getElementById('auftragAssignmentId');
+const assignmentInfoFragen = document.getElementById('fragenAssignmentId');
 const assignmentInfoReflexion = document.getElementById('reflexionsfrageAssignmentId');
 
 // Setze die Assignment IDs in den Titeln
-if (assignmentInfoAuftrag) {
-    assignmentInfoAuftrag.textContent = assignmentSuffix || 'defaultAssignment';
+if (assignmentInfoFragen) {
+    assignmentInfoFragen.textContent = assignmentSuffix || 'defaultAssignment';
 }
 if (assignmentInfoReflexion) {
     assignmentInfoReflexion.textContent = assignmentSuffix || 'defaultAssignment';
 }
 
 // Initialisiere die Quill-Editoren, falls die Elemente existieren
-let quillAuftrag, quillReflexion;
-if (document.getElementById('auftragBox')) {
-    quillAuftrag = new Quill('#auftragBox', {
+let quillFragen, quillReflexion;
+if (document.getElementById('fragenBox')) {
+    quillFragen = new Quill('#fragenBox', {
         theme: 'snow',
-        placeholder: 'Gib hier deinen Auftrag ein...',
+        placeholder: 'Gib hier deine Fragen ein...',
         modules: {
             toolbar: [
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 ['bold', 'italic', 'underline'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                 ['clean']
             ]
         }
     });
 
+    // Set initial content with a numbered list
+    quillFragen.clipboard.dangerouslyPasteHTML('<ol><li></li></ol>');
+
     // Blockiere das Einfügen von Inhalten
-    quillAuftrag.root.addEventListener('paste', function(e) {
+    quillFragen.root.addEventListener('paste', function(e) {
         e.preventDefault();
         alert("Einfügen von Inhalten ist in diesem Editor deaktiviert.");
     });
@@ -99,7 +102,7 @@ if (document.getElementById('reflexionsfrageBox')) {
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 ['clean']
             ]
         }
@@ -114,23 +117,23 @@ if (document.getElementById('reflexionsfrageBox')) {
 
 // Anzeigeelemente für gespeicherte Antworten
 const savedAnswerContainer = document.getElementById('savedAnswerContainer');
-const savedAuftragTitle = document.getElementById('savedAuftragTitle');
-const savedAuftragAnswer = document.getElementById('savedAuftragAnswer');
+const savedFragenTitle = document.getElementById('savedFragenTitle');
+const savedFragenAnswer = document.getElementById('savedFragenAnswer');
 const savedReflexionsfrageTitle = document.getElementById('savedReflexionsfrageTitle');
 const savedReflexionsfrageAnswer = document.getElementById('savedReflexionsfrageAnswer');
 const saveIndicator = document.getElementById('saveIndicator'); // Save Indicator Element
 
 // Funktion zur Anzeige des gespeicherten Textes
 function displaySavedAnswer(content) {
-    if (!savedAuftragTitle || !savedAuftragAnswer || !savedReflexionsfrageTitle || !savedReflexionsfrageAnswer || !savedAnswerContainer) return;
+    if (!savedFragenTitle || !savedFragenAnswer || !savedReflexionsfrageTitle || !savedReflexionsfrageAnswer || !savedAnswerContainer) return;
     // Kombiniere parentTitle und assignmentSuffix, falls verfügbar
     const titleText = parentTitle
-        ? `${parentTitle}\nAufgabe: ${assignmentSuffix}`
-        : `Aufgabe: ${assignmentSuffix}`;
+        ? `${parentTitle}\nFragen: ${assignmentSuffix}`
+        : `Fragen: ${assignmentSuffix}`;
     
-    // Anzeige der Auftrag
-    savedAuftragTitle.textContent = `Auftrag: ${assignmentSuffix}`;
-    savedAuftragAnswer.innerHTML = content.auftrag;
+    // Anzeige der Fragen
+    savedFragenTitle.textContent = `Fragen: ${assignmentSuffix}`;
+    savedFragenAnswer.innerHTML = content.fragen;
 
     // Anzeige der Reflexionsfrage
     savedReflexionsfrageTitle.textContent = `Reflexionsfrage: ${assignmentSuffix}`;
@@ -181,20 +184,20 @@ function fallbackCopyTextToClipboard(text) {
 
 // Funktion zum Speichern des Textes in localStorage
 function saveToLocal() {
-    if (!quillAuftrag || !quillReflexion) return;
-    const auftragContent = quillAuftrag.root.innerHTML;
+    if (!quillFragen || !quillReflexion) return;
+    const fragenContent = quillFragen.root.innerHTML;
     const reflexionContent = quillReflexion.root.innerHTML;
-    const auftragText = quillAuftrag.getText().trim();
+    const fragenText = quillFragen.getText().trim();
     const reflexionText = quillReflexion.getText().trim();
 
-    if (auftragText === "" && reflexionText === "") {
+    if (fragenText === "" && reflexionText === "") {
         console.log("Versuch, mit leerem Textfeld zu speichern");
         return;
     }
 
     const storageKey = STORAGE_PREFIX + assignmentId;
     const contentToSave = {
-        auftrag: auftragText ? auftragContent : "",
+        fragen: fragenText ? fragenContent : "",
         reflexionsfrage: reflexionText ? reflexionContent : ""
     };
     localStorage.setItem(storageKey, JSON.stringify(contentToSave));
@@ -215,10 +218,11 @@ function clearLocalStorage() {
         }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    if (quillAuftrag) quillAuftrag.setText(''); // Leere den Auftrag-Editor
+    if (quillFragen) quillFragen.setText(''); // Leere den Fragen-Editor
     if (quillReflexion) quillReflexion.setText(''); // Leere den Reflexionsfrage-Editor
     if (savedAnswerContainer) savedAnswerContainer.style.display = 'none';
     console.log("Alle gespeicherten boxsuk-Texte wurden gelöscht");
+    showSaveIndicator(); // Zeige den "Gespeichert"-Hinweis
     loadAllAnswers(); // Aktualisiere die Liste aller gespeicherten Antworten
 }
 
@@ -255,10 +259,10 @@ function printSingleAnswer(title, content) {
     titleElement.textContent = title;
     printDiv.appendChild(titleElement);
 
-    // Füge den Auftrag Inhalt hinzu
-    const auftragElement = document.createElement('div');
-    auftragElement.innerHTML = `<strong>Auftrag:</strong> ${content.auftrag}`;
-    printDiv.appendChild(auftragElement);
+    // Füge den Fragen Inhalt hinzu
+    const fragenElement = document.createElement('div');
+    fragenElement.innerHTML = `<strong>Fragen:</strong> ${content.fragen}`;
+    printDiv.appendChild(fragenElement);
 
     // Füge den Reflexionsfrage Inhalt hinzu
     const reflexionsfrageElement = document.createElement('div');
@@ -328,12 +332,11 @@ function printAllAnswers(allContent) {
 // Funktion zum Anzeigen des "Gespeichert"-Hinweises
 function showSaveIndicator() {
     if (!saveIndicator) return;
-    saveIndicator.style.display = 'block';
-    saveIndicator.style.backgroundColor = 'green'; // Set background color to green
-    saveIndicator.style.color = 'white'; // Set text color to white for better contrast
+    // Temporäre Änderung der Hintergrundfarbe für 2 Sekunden
+    saveIndicator.style.backgroundColor = 'green'; // Grün anzeigen
     setTimeout(() => {
-        saveIndicator.style.display = 'none';
-    }, 2000); // Verstecken nach 2 Sekunden
+        saveIndicator.style.backgroundColor = ''; // Zurück zur Standardfarbe
+    }, 2000); // Nach 2 Sekunden zurücksetzen
 }
 
 // Debounce-Funktion zur Begrenzung der Ausführungsrate
@@ -349,8 +352,8 @@ function debounce(func, wait) {
 const debouncedSave = debounce(saveToLocal, 2000);
 
 // Event Listener für Textänderungen zur automatischen Speicherung
-if (quillAuftrag && quillReflexion) {
-    quillAuftrag.on('text-change', function(delta, oldDelta, source) {
+if (quillFragen && quillReflexion) {
+    quillFragen.on('text-change', function(delta, oldDelta, source) {
         if (source === 'user') { // Stelle sicher, dass die Änderung vom Benutzer stammt
             debouncedSave();
         }
@@ -364,13 +367,13 @@ if (quillAuftrag && quillReflexion) {
 }
 
 // Lade gespeicherten Inhalt und setze ihn im Quill-Editor
-if (quillAuftrag && quillReflexion) {
+if (quillFragen && quillReflexion) {
     const savedText = localStorage.getItem(STORAGE_PREFIX + assignmentId);
     if (savedText) {
         const parsedSavedText = JSON.parse(savedText);
-        if (parsedSavedText.auftrag) {
-            quillAuftrag.root.innerHTML = parsedSavedText.auftrag;
-            console.log(`Gespeicherten Auftrag für ${STORAGE_PREFIX + assignmentId} geladen`);
+        if (parsedSavedText.fragen) {
+            quillFragen.root.innerHTML = parsedSavedText.fragen;
+            console.log(`Gespeicherten Fragen für ${STORAGE_PREFIX + assignmentId} geladen`);
         }
         if (parsedSavedText.reflexionsfrage) {
             quillReflexion.root.innerHTML = parsedSavedText.reflexionsfrage;
@@ -443,12 +446,12 @@ function loadAllAnswers() {
             title.textContent = `Aufgabe ${assignmentIdClean}`;
             draftDiv.appendChild(title);
 
-            // Auftrag Inhalt
-            const auftragDiv = document.createElement("div");
-            auftragDiv.className = "answerText";
-            auftragDiv.innerHTML = `<strong>Auftrag:</strong> ${parsedContent.auftrag}`;
-            auftragDiv.style.marginLeft = "30px"; // Platz für die Checkbox schaffen
-            draftDiv.appendChild(auftragDiv);
+            // Fragen Inhalt
+            const fragenDiv = document.createElement("div");
+            fragenDiv.className = "answerText";
+            fragenDiv.innerHTML = `<strong>Fragen:</strong> ${parsedContent.fragen}`;
+            fragenDiv.style.marginLeft = "30px"; // Platz für die Checkbox schaffen
+            draftDiv.appendChild(fragenDiv);
 
             // Reflexionsfrage Inhalt
             const reflexionsfrageDiv = document.createElement("div");
@@ -506,8 +509,8 @@ if (document.getElementById("downloadAllBtn")) {
 
         // Kombiniere parentTitle und assignmentSuffix für den Titel
         const titleText = parentTitle
-            ? `${parentTitle} - Aufgabe: ${assignmentSuffix}`
-            : `Aufgabe: ${assignmentSuffix}`;
+            ? `${parentTitle} - Fragen: ${assignmentSuffix}`
+            : `Fragen: ${assignmentSuffix}`;
 
         // Parse the saved JSON content
         const parsedContent = JSON.parse(savedText);
@@ -546,7 +549,7 @@ if (document.getElementById("printAllBtn")) {
                 const assignmentIdClean = assignmentIdMatch ? assignmentIdMatch[1] : assignmentIdKey;
                 const title = `Aufgabe ${assignmentIdClean}`;
                 allContent += `<h3>${title}</h3>`;
-                allContent += `<div><strong>Auftrag:</strong> ${parsedContent.auftrag}</div>`;
+                allContent += `<div><strong>Fragen:</strong> ${parsedContent.fragen}</div>`;
                 allContent += `<div><strong>Reflexionsfrage:</strong> ${parsedContent.reflexionsfrage}</div>`;
                 allContent += `<hr>`;
             }
@@ -602,7 +605,7 @@ function copyAnswer(assignmentId) {
     const content = localStorage.getItem(assignmentId);
     if (content) {
         const parsedContent = JSON.parse(content);
-        const combinedText = `Auftrag: ${stripHtml(parsedContent.auftrag)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
+        const combinedText = `Fragen: ${stripHtml(parsedContent.fragen)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
         copyTextToClipboard(combinedText);
     }
 }
@@ -626,7 +629,7 @@ function copyBothAnswers() {
     }
 
     const parsedContent = JSON.parse(savedText);
-    const combinedText = `Auftrag: ${stripHtml(parsedContent.auftrag)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
+    const combinedText = `Fragen: ${stripHtml(parsedContent.fragen)}\nReflexionsfrage: ${stripHtml(parsedContent.reflexionsfrage)}`;
 
     copyTextToClipboard(combinedText);
 }
@@ -655,11 +658,11 @@ if (exportTxtBtn) {
         const parsedContent = JSON.parse(savedHtml);
 
         // HTML zu Text mit korrekten Zeilenumbrüchen konvertieren
-        const auftragText = stripHtml(parsedContent.auftrag);
+        const fragenText = stripHtml(parsedContent.fragen);
         const reflexionText = stripHtml(parsedContent.reflexionsfrage);
 
         // Füge URL und AssignmentId hinzu
-        let plainText = `Auftrag:\n${auftragText}\n\nReflexionsfrage:\n${reflexionText}\n\nURL: ${window.location.href}\nAssignment ID: ${assignmentId}`;
+        let plainText = `Fragen:\n${fragenText}\n\nReflexionsfrage:\n${reflexionText}\n\nURL: ${window.location.href}\nAssignment ID: ${assignmentId}`;
 
         // Blob und Download
         const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
@@ -677,6 +680,7 @@ if (exportTxtBtn) {
             window.open(url); // Fallback for unsupported browsers
         }
 
-        alert("Alle Antworten wurden als TXT exportiert.");
+        // Update "Gespeichert" Indicator
+        showSaveIndicator();
     });
 }

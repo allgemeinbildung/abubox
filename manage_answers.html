@@ -79,11 +79,11 @@
                     title.textContent = `Aufgabe ${assignmentId}`;
                     answerDiv.appendChild(title);
 
-                    // Auftrag Inhalt
-                    const auftragDiv = document.createElement("div");
-                    auftragDiv.className = "answerText";
-                    auftragDiv.innerHTML = `<strong>Auftrag:</strong> ${parsedContent.auftrag}`;
-                    answerDiv.appendChild(auftragDiv);
+                    // Fragen Inhalt
+                    const fragenDiv = document.createElement("div");
+                    fragenDiv.className = "answerText";
+                    fragenDiv.innerHTML = `<strong>Fragen:</strong> ${parsedContent.fragen}`;
+                    answerDiv.appendChild(fragenDiv);
 
                     // Reflexionsfrage Inhalt
                     const reflexionsfrageDiv = document.createElement("div");
@@ -170,10 +170,10 @@
             titleElement.textContent = title;
             printDiv.appendChild(titleElement);
 
-            // Füge den Auftrag Inhalt hinzu
-            const auftragElement = document.createElement('div');
-            auftragElement.innerHTML = `<strong>Auftrag:</strong> ${content.auftrag}`;
-            printDiv.appendChild(auftragElement);
+            // Füge den Fragen Inhalt hinzu
+            const fragenElement = document.createElement('div');
+            fragenElement.innerHTML = `<strong>Fragen:</strong> ${content.fragen}`;
+            printDiv.appendChild(fragenElement);
 
             // Füge den Reflexionsfrage Inhalt hinzu
             const reflexionsfrageElement = document.createElement('div');

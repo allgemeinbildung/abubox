@@ -378,104 +378,13 @@ if (document.getElementById("downloadAllBtn")) {
 }
 
 // Funktion zum Generieren und Exportieren einer einzelnen Antwort als HTML
-function exportAnswerAsHtml(content, assignmentId) {
-    const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="de">
-        <head>
-            <meta charset="UTF-8">
-            <title>Antwort - Aufgabe ${assignmentId}</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h2 { color: #003f5c; }
-                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
-                div { margin-bottom: 10px; }
-            </style>
-        </head>
-        <body>
-            <h2>Aufgabe ${assignmentId}</h2>
-            <div><strong>Fragen:</strong> ${content.fragen}</div>
-            <div><strong>Reflexionsfrage:</strong> ${content.reflexionsfrage}</div>
-        </body>
-        </html>
-    `;
-
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 1000); // Clean up memory
-}
+// Removed as per the request
 
 // Funktion zum Exportieren der aktuellen Antwort als HTML
-function exportAnswerAsHtmlHandler() {
-    const savedText = localStorage.getItem(STORAGE_PREFIX + assignmentId);
-
-    if (!savedText) {
-        alert("Keine gespeicherte Antwort zum Exportieren vorhanden.");
-        console.log("Versuch, die Antwort zu exportieren, aber keine ist gespeichert");
-        return;
-    }
-
-    const parsedContent = JSON.parse(savedText);
-    exportAnswerAsHtml(parsedContent, assignmentSuffix || 'defaultAssignment');
-}
+// Removed as per the request
 
 // Funktion zum Generieren und Exportieren aller Antworten als HTML
-function downloadAllAnswersAsHtml() {
-    const answers = getAllSavedAnswers();
-    const messageEl = document.getElementById('message');
-
-    if (answers.length === 0) {
-        messageEl.textContent = "Keine gespeicherten Antworten gefunden.";
-        return;
-    }
-
-    let allContent = '';
-    answers.forEach(answer => {
-        allContent += `<h2>Aufgabe ${answer.id}</h2>`;
-        allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
-        allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
-        allContent += `<hr>`;
-    });
-
-    const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="de">
-        <head>
-            <meta charset="UTF-8">
-            <title>Alle Antworten</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h2 { color: #003f5c; }
-                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
-                div { margin-bottom: 10px; }
-            </style>
-        </head>
-        <body>
-            ${allContent}
-        </body>
-        </html>
-    `;
-
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    // Feature detection for download attribute
-    if (typeof link.download !== 'undefined') {
-        link.download = 'alle_antworten.html';
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        messageEl.textContent = "Alle Antworten wurden als HTML exportiert.";
-    } else {
-        // Fallback for browsers without download support
-        window.open(url);
-        messageEl.textContent = "Browser unterstützt den Download nicht. Datei wurde in einem neuen Tab geöffnet.";
-    }
-}
+// Removed as per the request
 
 // Event Listener für den "Alle auswählen" Checkbox
 function toggleBulkDeleteButton() {
@@ -493,12 +402,6 @@ document.getElementById("selectAll").addEventListener('change', function() {
 
 // Event Listener für den Bulk Delete Button
 document.getElementById("bulkDeleteBtn").addEventListener('click', bulkDeleteAnswers);
-
-// Event Listener für den Export als HTML Button (in answers.html)
-const exportHtmlBtn = document.getElementById("exportHtmlBtn");
-if (exportHtmlBtn) {
-    exportHtmlBtn.addEventListener('click', exportAnswerAsHtmlHandler);
-}
 
 // Funktion zum Drucken aller Antworten
 function printAllAnswers(allContent) {
@@ -531,69 +434,6 @@ function printAllAnswers(allContent) {
 
     // Trigger den Druck
     window.print();
-}
-
-// Funktion zum Generieren und Exportieren aller Antworten als HTML (für print_page.html)
-function downloadAllAnswersAsHtmlFromPrintPage() {
-    const answers = getAllSavedAnswers();
-    const messageEl = document.getElementById('message');
-
-    if (answers.length === 0) {
-        messageEl.textContent = "Keine gespeicherten Antworten gefunden.";
-        return;
-    }
-
-    let allContent = '';
-    answers.forEach(answer => {
-        allContent += `<h2>Aufgabe ${answer.id}</h2>`;
-        allContent += `<div><strong>Fragen:</strong> ${answer.fragen}</div>`;
-        allContent += `<div><strong>Reflexionsfrage:</strong> ${answer.reflexionsfrage}</div>`;
-        allContent += `<hr>`;
-    });
-
-    const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="de">
-        <head>
-            <meta charset="UTF-8">
-            <title>Alle Antworten</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h2 { color: #003f5c; }
-                hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
-                div { margin-bottom: 10px; }
-            </style>
-        </head>
-        <body>
-            ${allContent}
-        </body>
-        </html>
-    `;
-
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    // Feature detection for download attribute
-    if (typeof link.download !== 'undefined') {
-        link.download = 'alle_antworten_.html';
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        messageEl.textContent = "Alle Antworten wurden als HTML exportiert.";
-    } else {
-        // Fallback for browsers without download support
-        window.open(url);
-        messageEl.textContent = "Browser unterstützt den Download nicht. Datei wurde in einem neuen Tab geöffnet.";
-    }
-}
-
-// Event Listener für den "Alle Antworten als HTML exportieren" Button (in print_page.html)
-const downloadAllHtmlBtn = document.getElementById("downloadAllHtmlBtn");
-if (downloadAllHtmlBtn) {
-    downloadAllHtmlBtn.addEventListener('click', downloadAllAnswersAsHtml);
 }
 
 // Optional: Log the initial state of localStorage for debugging

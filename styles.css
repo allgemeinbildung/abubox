@@ -114,6 +114,12 @@ button:hover {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
+/* Add this CSS rule */
+#exportHtmlBtn {
+    background-color: #000000;
+    color: #ffffff;
+}
 .deleteAnswerBtn:hover {
     background-color: #d32f2f; /* Dunkleres Rot beim Hover */
 }

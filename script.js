@@ -123,25 +123,6 @@ const savedReflexionsfrageTitle = document.getElementById('savedReflexionsfrageT
 const savedReflexionsfrageAnswer = document.getElementById('savedReflexionsfrageAnswer');
 const saveIndicator = document.getElementById('saveIndicator'); // Save Indicator Element
 
-// Funktion zur Anzeige des gespeicherten Textes
-function displaySavedAnswer(content) {
-    if (!savedFragenTitle || !savedFragenAnswer || !savedReflexionsfrageTitle || !savedReflexionsfrageAnswer || !savedAnswerContainer) return;
-    // Kombiniere parentTitle und assignmentSuffix, falls verfügbar
-    const titleText = parentTitle
-        ? `${parentTitle}\nFragen: ${assignmentSuffix}`
-        : `Fragen: ${assignmentSuffix}`;
-    
-    // Anzeige der Fragen
-    savedFragenTitle.textContent = `Fragen: ${assignmentSuffix}`;
-    savedFragenAnswer.innerHTML = content.fragen;
-
-    // Anzeige der Reflexionsfrage
-    savedReflexionsfrageTitle.textContent = `Reflexionsfrage: ${assignmentSuffix}`;
-    savedReflexionsfrageAnswer.innerHTML = content.reflexionsfrage;
-
-    savedAnswerContainer.style.display = 'block';
-}
-
 // Funktion zum Kopieren von Text in die Zwischenablage
 function copyTextToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -202,10 +183,18 @@ function saveToLocal() {
     };
     localStorage.setItem(storageKey, JSON.stringify(contentToSave));
     console.log(`Text für ${storageKey} gespeichert`);
-    displaySavedAnswer(contentToSave); // Aktualisiere die Anzeige des gespeicherten Textes
     showSaveIndicator(); // Zeige den "Gespeichert"-Hinweis
-    loadAllAnswers(); // Aktualisiere die Liste aller gespeicherten Antworten
 }
+
+// Add/update these functions in script.js
+function showSaveIndicator() {
+    const saveIndicator = document.getElementById('saveIndicator');
+    saveIndicator.style.backgroundColor = '#4CAF50'; // Green color
+    setTimeout(() => {
+        saveIndicator.style.backgroundColor = '#555555'; // Original color
+    }, 1000);
+}
+
 
 // Funktion zum Löschen aller gespeicherten Texte aus localStorage
 function clearLocalStorage() {
@@ -359,114 +348,6 @@ if (quillFragen && quillReflexion) {
     } else {
         console.log(`Kein gespeicherter Text für ${STORAGE_PREFIX + assignmentId} gefunden`);
     }
-}
-
-// Funktion zum Laden und Anzeigen aller gespeicherten Antworten
-function loadAllAnswers() {
-    const draftContainer = document.getElementById("draftContainer");
-    if (!draftContainer) return;
-    draftContainer.innerHTML = ""; // Container leeren
-
-    const currentStorageKey = STORAGE_PREFIX + assignmentId;
-    const storageKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith(STORAGE_PREFIX) && key !== currentStorageKey
-    );
-
-    console.log(`Gefundene ${storageKeys.length} gespeicherte boxsuk-Assignments`);
-
-    if(storageKeys.length === 0) {
-        draftContainer.innerHTML = "<p>Keine gespeicherten Antworten gefunden.</p>";
-        return;
-    }
-
-    // Sortieren der storageKeys basierend auf dem Suffix in absteigender Reihenfolge (neueste zuerst)
-    storageKeys.sort((a, b) => {
-        const suffixA = a.replace(STORAGE_PREFIX, '');
-        const suffixB = b.replace(STORAGE_PREFIX, '');
-        return suffixB.localeCompare(suffixA, undefined, {numeric: true, sensitivity: 'base'});
-    });
-
-    console.log("Sortierte Assignment-IDs:", storageKeys);
-
-    storageKeys.forEach(assignmentIdKey => {
-        const text = localStorage.getItem(assignmentIdKey);
-        if(text) {
-            const parsedContent = JSON.parse(text);
-            console.log(`Lade Assignment: ${assignmentIdKey}`);
-            const draftDiv = document.createElement("div");
-            draftDiv.className = "draft";
-
-            // Erstellen einer Checkbox
-            const checkboxDiv = document.createElement("div");
-            checkboxDiv.style.position = "absolute";
-            checkboxDiv.style.top = "10px";
-            checkboxDiv.style.left = "10px";
-
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.className = "select-answer";
-            checkbox.value = assignmentIdKey; // assignmentId als Wert verwenden
-            checkbox.addEventListener('change', toggleBulkDeleteButton);
-
-            const checkboxLabel = document.createElement("label");
-            checkboxLabel.textContent = " Auswählen";
-
-            checkboxDiv.appendChild(checkbox);
-            checkboxDiv.appendChild(checkboxLabel);
-            draftDiv.appendChild(checkboxDiv);
-
-            const assignmentIdMatch = assignmentIdKey.match(/^boxsuk-assignment[_-]?(.+)$/);
-            const assignmentIdClean = assignmentIdMatch ? assignmentIdMatch[1] : assignmentIdKey;
-
-            const title = document.createElement("h3");
-            title.textContent = `Aufgabe ${assignmentIdClean}`;
-            draftDiv.appendChild(title);
-
-            // Fragen Inhalt
-            const fragenDiv = document.createElement("div");
-            fragenDiv.className = "answerText";
-            fragenDiv.innerHTML = `<strong>Fragen:</strong> ${parsedContent.fragen}`;
-            fragenDiv.style.marginLeft = "30px"; // Platz für die Checkbox schaffen
-            draftDiv.appendChild(fragenDiv);
-
-            // Reflexionsfrage Inhalt
-            const reflexionsfrageDiv = document.createElement("div");
-            reflexionsfrageDiv.className = "answerText";
-            reflexionsfrageDiv.innerHTML = `<strong>Reflexionsfrage:</strong> ${parsedContent.reflexionsfrage}`;
-            reflexionsfrageDiv.style.marginLeft = "30px"; // Platz für die Checkbox schaffen
-            draftDiv.appendChild(reflexionsfrageDiv);
-
-            // Erstellen der Button-Gruppe
-            const buttonGroup = document.createElement("div");
-            buttonGroup.className = "button-group";
-
-            // Löschen-Schaltfläche
-            const deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "Antwort löschen";
-            deleteBtn.className = "deleteAnswerBtn";
-            deleteBtn.addEventListener('click', function() {
-                deleteAnswer(assignmentIdKey);
-            });
-            buttonGroup.appendChild(deleteBtn);
-            
-            // Neuer Druck-Button
-            const printBtn = document.createElement("button");
-            printBtn.textContent = "Diese Antwort drucken / Als PDF speichern";
-            printBtn.className = "printAnswerBtn";
-            printBtn.addEventListener('click', function() {
-                printSingleAnswer(`Aufgabe ${assignmentIdClean}`, parsedContent);
-            });
-            buttonGroup.appendChild(printBtn);
-            // Ende Druck-Button
-
-            draftDiv.appendChild(buttonGroup);
-
-            draftContainer.appendChild(draftDiv);
-        }
-    });
-
-    // Nach dem Laden der Antworten:
-    toggleBulkDeleteButton();
 }
 
 // Event Listener für den Button "Text drucken / Als PDF speichern" (nun beide Antworten)

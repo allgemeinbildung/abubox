@@ -160,21 +160,6 @@ button:hover {
     cursor: not-allowed;
 }
 
-/* Anzeige der gespeicherten Antwort */
-#savedAnswerContainer {
-    margin-top: 20px;
-    border: 1px solid var(--border-color);
-    padding: 10px;
-    border-radius: 5px;
-    background-color: var(--editor-background);
-    display: none; /* Standardmäßig verborgen */
-    position: relative;
-}
-
-#savedAnswerContainer h3 {
-    margin-bottom: 10px;
-}
-
 #savedFragenAnswer, #savedReflexionsfrageAnswer {
     white-space: pre-wrap;
     font-size: 14px;
@@ -211,17 +196,6 @@ button:hover {
     margin-bottom: 20px;
 }
 
-/* Anzeigebereich für gespeicherte Antworten */
-.draft {
-    margin-bottom: 30px;
-    border: 1px solid var(--border-color);
-    padding: 15px;
-    border-radius: 5px;
-    background-color: var(--editor-background);
-    position: relative;
-    padding-left: 40px; /* Platz für die Checkbox */
-}
-
 .answerText {
     white-space: pre-wrap;
     font-size: 14px;
@@ -231,12 +205,6 @@ button:hover {
     background-color: var(--editor-background);
     overflow: auto;
     border: none;
-    margin-top: 10px;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px; /* Reduzierter fester Abstand zwischen den Buttons */
     margin-top: 10px;
 }
 

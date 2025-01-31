@@ -250,12 +250,12 @@ function printSingleAnswer(title, content) {
 
     // Füge den Fragen Inhalt hinzu
     const fragenElement = document.createElement('div');
-    fragenElement.innerHTML = `<strong>Fragen:</strong> ${content.fragen}`;
+    fragenElement.innerHTML = `<strong>Antworten zu:</strong> ${content.fragen}`;
     printDiv.appendChild(fragenElement);
 
     // Füge den Reflexionsfrage Inhalt hinzu
     const reflexionsfrageElement = document.createElement('div');
-    reflexionsfrageElement.innerHTML = `<strong>Reflexionsfrage:</strong> ${content.reflexionsfrage}`;
+    reflexionsfrageElement.innerHTML = `<strong>Reflexion:</strong> ${content.reflexionsfrage}`;
     printDiv.appendChild(reflexionsfrageElement);
 
     // Füge einen Trenner hinzu
@@ -290,15 +290,15 @@ function displaySavedAnswer(content) {
     if (!savedFragenTitle || !savedFragenAnswer || !savedReflexionsfrageTitle || !savedReflexionsfrageAnswer || !savedAnswerContainer) return;
     // Kombiniere parentTitle und assignmentSuffix, falls verfügbar
     const titleText = parentTitle
-        ? `${parentTitle}\nFragen: ${assignmentSuffix}`
-        : `Fragen: ${assignmentSuffix}`;
+        ? `${parentTitle}\nAntworten zu: ${assignmentSuffix}`
+        : `Antworten zu: ${assignmentSuffix}`;
     
     // Anzeige der Fragen
-    savedFragenTitle.textContent = `Fragen: ${assignmentSuffix}`;
+    savedFragenTitle.textContent = `Antworten zu: ${assignmentSuffix}`;
     savedFragenAnswer.innerHTML = content.fragen;
 
     // Anzeige der Reflexionsfrage
-    savedReflexionsfrageTitle.textContent = `Reflexionsfrage: ${assignmentSuffix}`;
+    savedReflexionsfrageTitle.textContent = `Reflexion: ${assignmentSuffix}`;
     savedReflexionsfrageAnswer.innerHTML = content.reflexionsfrage;
 
     savedAnswerContainer.style.display = 'block';
@@ -366,8 +366,8 @@ if (document.getElementById("downloadAllBtn")) {
 
         // Kombiniere parentTitle und assignmentSuffix für den Titel
         const titleText = parentTitle
-            ? `${parentTitle} - Fragen: ${assignmentSuffix}`
-            : `Fragen: ${assignmentSuffix}`;
+            ? `${parentTitle} - Antworten zu: ${assignmentSuffix}`
+            : `Antworten zu: ${assignmentSuffix}`;
 
         // Parse the saved JSON content
         const parsedContent = JSON.parse(savedText);

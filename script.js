@@ -402,20 +402,8 @@ function exportAnswerAsHtml(content, assignmentId) {
 
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    // Feature detection for download attribute
-    if (typeof link.download !== 'undefined') {
-        link.download = `antwort_${assignmentId}.html`;
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-    } else {
-        // Fallback for browsers without download support
-        window.open(url);
-    }
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 1000); // Clean up memory
 }
 
 // Funktion zum Exportieren der aktuellen Antwort als HTML
